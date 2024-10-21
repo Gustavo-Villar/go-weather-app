@@ -32,3 +32,14 @@ Para executar o projeto use o comando para executar os testes e subir a api:
 ```bash
 docker-compose up --build
 ```
+
+## Google Run URL
+
+A aplicação está disponível no Google Run, o link base da aplicação é <https://myapp-868620356628.us-central1.run.app> e as chamadas podem ser feitas da mesma forma que localmente.
+
+Exemplo de chamada:
+
+```bash
+curl -X GET "https://myapp-868620356628.us-central1.run.app/weather?cep=15055285"
+
+```
