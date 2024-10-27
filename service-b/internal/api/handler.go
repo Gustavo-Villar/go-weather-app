@@ -7,9 +7,13 @@ import (
 
 	"github.com/gustavo-villar/go-weather-tracker/service-b/internal/model"
 	"github.com/gustavo-villar/go-weather-tracker/service-b/internal/service"
+	"go.opentelemetry.io/otel"
 )
 
 func HandleGetWeather(w http.ResponseWriter, r *http.Request) {
+	ctx, commandSpan := otel.GetTracerProvider().Tracer("weather").Start(r.Context(), "weather-command")
+	defer commandSpan.End()
+
 	cep := r.URL.Query().Get("cep")
 
 	// Check if empty
@@ -25,7 +29,9 @@ func HandleGetWeather(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Get ViaCep Object
+	ctx, zipcodeQuerySpan := otel.GetTracerProvider().Tracer("weather").Start(ctx, "weather-zipcode-query")
 	viaCepObj, err := service.GetLocationByCEP(cep)
+	zipcodeQuerySpan.End()
 	if err != nil {
 		http.Error(w, "can not find zipcode", http.StatusNotFound)
 		return
@@ -37,7 +43,9 @@ func HandleGetWeather(w http.ResponseWriter, r *http.Request) {
 	escapedLocation := url.QueryEscape(location)
 
 	// Get WeatherAPI Object
+	_, weatherQuerySpan := otel.GetTracerProvider().Tracer("weather").Start(ctx, "weather-query")
 	weatherApiObj, err := service.GetTemperature(escapedLocation)
+	weatherQuerySpan.End()
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
@@ -53,5 +61,7 @@ func HandleGetWeather(w http.ResponseWriter, r *http.Request) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "could not encode response", http.StatusInternalServerError)
+	}
 }

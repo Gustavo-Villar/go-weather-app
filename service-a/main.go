@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	WEATHER_API = "http://localhost:8001"
+	WEATHER_API = "http://service-b:8001"
 )
 
 func init() {
@@ -57,7 +57,10 @@ func run() (err error) {
 			return
 		}
 
-		req, _ := http.NewRequestWithContext(ctx, "GET", fmt.Sprintf("%s/%s", WEATHER_API, zipcode), nil)
+		url := fmt.Sprintf("%s/weather?cep=%s", WEATHER_API, zipcode) // service-b with query paramn
+		// url := fmt.Sprintf("%s/%s", WEATHER_API, zipcode) // service-b with direct route
+
+		req, _ := http.NewRequestWithContext(ctx, "GET", url, nil)
 		otel.GetTextMapPropagator().Inject(ctx, propagation.HeaderCarrier(req.Header))
 
 		res, err := http.DefaultClient.Do(req)

@@ -1,19 +1,29 @@
-FROM golang:1.22-alpine AS builder
+# Usando a imagem oficial do Go como base
+FROM golang:1.22 AS builder
 
+# Definindo o diretório de trabalho
 WORKDIR /app
 
-RUN apk update && apk upgrade && apk add --no-cache ca-certificates
-RUN update-ca-certificates
-
+# Copiando os arquivos do código-fonte para o contêiner
 COPY . .
 
-RUN GOOS=linux GOARCH=amd64 CGO_ENABLE=0 go build -ldflags="-s -w" -o server .
+# Instalando dependências
+RUN go mod tidy
 
-FROM scratch
+# Construindo a aplicação
+RUN CGO_ENABLED=0 go build -o server cmd/main.go
 
-COPY --from=builder /app/server /usr/bin/server
-COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
+# Criando uma nova imagem para o runtime
+FROM alpine:latest
 
+# Instalando glibc (se necessário)
+RUN apk add --no-cache libc6-compat
+
+# Copiando o executável da imagem de builder
+COPY --from=builder /app/server /server
+
+# Expondo a porta que a aplicação irá rodar
 EXPOSE 8001
 
-ENTRYPOINT ["server"]
+# Comando para executar a aplicação
+CMD ["/server"]
