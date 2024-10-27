@@ -1,0 +1,24 @@
+receivers:
+  otlp:
+    protocols:
+      grpc: {}  # Ensure the gRPC protocol is specified
+      http: {}
+
+exporters:
+  logging: {}
+
+  zipkin:
+    endpoint: "http://zipkin_service:9411/api/v2/spans"  # Ensure service name is correct
+    format: json
+    tls:
+      insecure: true  # Only if you are okay with unencrypted connections
+
+processors:
+  batch: {}
+
+service:
+  pipelines:
+    traces:
+      receivers: [otlp]
+      processors: [batch]
+      exporters: [zipkin, logging]

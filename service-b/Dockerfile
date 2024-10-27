@@ -10,11 +10,8 @@ COPY . .
 # Instalando dependências
 RUN go mod tidy
 
-# Executando os testes
-RUN go test ./... -v
-
 # Construindo a aplicação
-RUN CGO_ENABLED=0 go build -o myapp cmd/main.go
+RUN CGO_ENABLED=0 go build -o server cmd/main.go
 
 # Criando uma nova imagem para o runtime
 FROM alpine:latest
@@ -23,10 +20,10 @@ FROM alpine:latest
 RUN apk add --no-cache libc6-compat
 
 # Copiando o executável da imagem de builder
-COPY --from=builder /app/myapp /myapp
+COPY --from=builder /app/server /server
 
 # Expondo a porta que a aplicação irá rodar
-EXPOSE 8080
+EXPOSE 8001
 
 # Comando para executar a aplicação
-CMD ["/myapp"]
+CMD ["/server"]

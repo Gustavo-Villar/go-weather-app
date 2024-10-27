@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/gustavo-villar/go-weather-tracker/internal/model"
+	"github.com/gustavo-villar/go-weather-tracker/service-b/internal/model"
 )
 
 // GetTemperature fetches the current temperature for a given location.

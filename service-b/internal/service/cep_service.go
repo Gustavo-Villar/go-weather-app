@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"regexp"
 
-	"github.com/gustavo-villar/go-weather-tracker/internal/model"
+	"github.com/gustavo-villar/go-weather-tracker/service-b/internal/model"
 )
 
 // IsValidCEP checks if the given CEP is valid (8 digits and all numeric).

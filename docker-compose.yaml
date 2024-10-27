@@ -1,7 +1,46 @@
+version: '3.8'
 services:
-  my-go-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  zipkin_service:
+    image: openzipkin/zipkin
+    container_name: zipkin_service
+    environment:
+      - STORAGE_TYPE=mem
     ports:
-      - "8080:8080"
+      - "9411:9411"
+    networks:
+      - services_ntw
+
+  otel_collector:
+    image: otel/opentelemetry-collector:0.95.0
+    container_name: otel_collector
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
+    volumes:
+      - ./.docker/otel-collector-config.yaml:/etc/otel-collector-config.yaml
+    ports:
+      - "4317:4317" # gRPC port
+      - "4318:4318" # HTTP port
+    depends_on:
+      - zipkin_service
+    networks:
+      - services_ntw
+
+  service-a:
+    build: ./service-a
+    ports:
+      - 8000:8000
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=otel_collector:4317  # Corrected endpoint
+    networks:
+      - services_ntw
+
+  service-b:
+    build: ./service-b
+    ports:
+      - 8001:8001
+    environment:
+      - OTEL_EXPORTER_OTLP_ENDPOINT=otel_collector:4317  # Corrected endpoint
+    networks:
+      - services_ntw
+
+networks:
+  services_ntw:
