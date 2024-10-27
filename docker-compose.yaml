@@ -1,7 +1,25 @@
 services:
-  my-go-app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  zipkin:
+    image: openzipkin/zipkin:latest
+    restart: always
     ports:
-      - "8080:8080"
+      - "9411:9411"
+
+  otelcol:
+    image: otel/opentelemetry-collector:latest
+    volumes:
+      - ./configs/otel-collector.yaml:/etc/otel/config.yaml
+    command: ["--config=/etc/otel/config.yaml"]
+    ports:
+      - 4317:4317
+      - 55679:55679
+
+  service-a:
+    build: ./service-a
+    ports:
+      - 8000:8000
+
+  service-b:
+    build: ./service-b
+    ports:
+      - 8001:8001
