@@ -37,15 +37,25 @@ func SetupProvider(ctx context.Context, serviceName string) (shutdown func(conte
 		err = errors.Join(inErr, shutdown(ctx))
 	}
 
+	// Create a resource describing this application.
 	resource, err := resource.New(ctx,
 		resource.WithAttributes(
 			semconv.ServiceName(serviceName),
 		),
 	)
+	if err != nil {
+		handleErr(err)
+		return
+	}
 
-	grpcConn, err := grpc.NewClient("otelcol:4317",
+	// Create a gRPC connection to the OpenTelemetry Collector.
+	grpcConn, err := grpc.DialContext(ctx, "otel_collector:4317",
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
+	if err != nil {
+		handleErr(err)
+		return
+	}
 
 	// Set up trace provider.
 	tracerProvider, err := newTraceProvider(ctx, grpcConn, resource)
@@ -56,7 +66,7 @@ func SetupProvider(ctx context.Context, serviceName string) (shutdown func(conte
 	shutdownFuncs = append(shutdownFuncs, tracerProvider.Shutdown)
 	otel.SetTracerProvider(tracerProvider)
 
-	return
+	return shutdown, nil
 }
 
 func newTraceProvider(ctx context.Context, grpcConn *grpc.ClientConn, resource *resource.Resource) (*trace.TracerProvider, error) {

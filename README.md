@@ -1,24 +1,29 @@
-# Go Weather App
+# Go Weather App - OTEL
 
 Um serviço de previsão do tempo que recebe um CEP para buscar a localização e retorna a temperatura em Celsius, Kelvin e Fahrenheit.
 
 Utiliza as APIs do [ViaCEP](https://viacep.com.br/) e [WeatherAPI](weatherapi.com/).
 
-## Modo de uso
+## Serviços
 
-Para utilizar o serviço, basta enviar uma requisição GET para o endpoint `/weather` com o CEP desejado.
+O projeto é composto por 2 serviços:
 
-- Exemplo de Chamada:
+- **Serviço A:** Responsável por receber um CEP, fazer as devidas verificiações e chamar o Serviço B.
+
+- **Serviço B:** Responsável por receber a cidade e retornar a temperatura.
+
+- Exemplo de Chamada feita para o serviço A:
   
 ```bash
-curl -X GET "http://localhost:8080/weather?cep=15055285"
+curl -X POST http://localhost:8000/15055285
 
 ```
 
-- Exemplo de Resposta:
+- Exemplo de Resposta final após o processamento feito pelo serviço B:
 
 ```json
 {
+    "city": "São José do Rio Preto",
     "temp_C": 25.8,
     "temp_F": 78.44,
     "temp_K": 298.95
@@ -33,13 +38,10 @@ Para executar o projeto use o comando para executar os testes e subir a api:
 docker-compose up --build
 ```
 
-## Google Run URL
+## Zipkin
 
-A aplicação está disponível no Google Run, o link base da aplicação é <https://myapp-868620356628.us-central1.run.app> e as chamadas podem ser feitas da mesma forma que localmente.
-
-Exemplo de chamada:
+Para visualizar as chamadas entre os serviços por meio dos spans, acesse o Zipkin em:
 
 ```bash
-curl -X GET "https://myapp-868620356628.us-central1.run.app/weather?cep=15055285"
-
+http://localhost:9411/zipkin/
 ```
